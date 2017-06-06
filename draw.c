@@ -1,4 +1,4 @@
-#include <stdio.h>
+mac#include <stdio.h>
 #include <stdlib.h>
 
 #include "ml6.h"
@@ -8,7 +8,38 @@
 #include "math.h"
 #include "gmath.h"
 
+int minValue(int a,int b, int c){
+  if (a >=b){
+    if(a>=c){
+      return a;
+    }
+  }
+  if(b>=a){
+    if(b>= c){
+      return b;
+    }
+  }
+  if(c>=a){
+    if(c>=b){
+      return c;  
+    }
+  }
+}
 void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb ) {
+  int x1,y1,z1,x2,y2,z2,x3,y3,z3,k;
+  int max, min;
+  for(k = 0;k<points->lastcol - 2;k+=3){
+    x1 = points->m[k][0];
+    y1 = points->m[k][1];
+    z1 = points->m[k][2];
+    x2 = points->m[k+1][0];
+    y2 = points->m[k+1][1];
+    z2 = points->m[k+1][2];
+    x3 = points->m[k+2][0];
+    y3 = points->m[k+2][1];
+    z3 = points->m[k+2][2];
+    
+    
 }
 
 
