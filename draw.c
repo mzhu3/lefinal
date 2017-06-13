@@ -1,4 +1,4 @@
-mac#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "ml6.h"
@@ -8,7 +8,7 @@ mac#include <stdio.h>
 #include "math.h"
 #include "gmath.h"
 
-int maxValue(int a,int b, int c){
+double maxValue(double a,double b, double c){
   if (a >=b){
     if(a>=c){
       return a;
@@ -25,7 +25,7 @@ int maxValue(int a,int b, int c){
     }
   }
 }
-int mixValue(int a,int b, int c){
+double minValue(double a,double b, double c){
   if (a <=b){
     if(a<=c){
       return a;
@@ -42,33 +42,156 @@ int mixValue(int a,int b, int c){
     }
   }
 }
-void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb ) {
-  int x1,y1,x2,y2,x3,y3,k;
-  int maxX,maxY, minX,minY,midX,midY;
-  for(k = 0;k<points->lastcol - 2;k+=3){
-    x1 = points->m[k][0];
-    y1 = points->m[k][1];
-   
-    x2 = points->m[k+1][0];
-    y2 = points->m[k+1][1];
-   
-    x3 = points->m[k+2][0];
-    y3 = points->m[k+2][1];
-   
-    maxX = maxValue(x1,x2,x3);
-    maxY = maxValue(y1,y2,y3);
-    minX = minValue(x1,x2,x3);
-    minY = minValue(y1,y2,y3);
-    if(
-    
-    
-    
+void scanline_convert( struct matrix *points, int i, screen s, zbuffer zb,color c ) {
+  int k;
+  double x1,y1,z1,x2,y2,z2,x3,y3,z3;
+  double maxX,maxY,maxZ, minX,minY,minZ,midX,midY,midZ;
+  double dx,dz,dx1,dz1;
+  double xA,xB,zA,zB,yA;
+  x1 = points->m[0][i];
+  y1 = points->m[1][i];
+  z1 = points->m[2][i];
+  x2 = points->m[0][i+1];
+  y2 = points->m[1][i+1];
+  z2 = points->m[2][i+1];
+  x3 = points->m[0][i+2];
+  y3 = points->m[1][i+2];
+  z3 = points->m[2][i+2];
+  /*  maxX = maxValue(x1,x2,x3);
+  maxY = maxValue(y1,y2,y3);
+  maxZ = maxValue(z1,z2,z3);
+  minX = minValue(x1,x2,x3);
+  minY = minValue(y1,y2,y3);
+  minZ = minValue(z1,z2,z3);
+  midX = x1 + x2 + x3 - maxX - minX;
+  midY = y1 + y2 + y3 - maxY - minY;
+  midZ = z1 + z2 + z3 - maxZ - minZ;
+  */
+  //Thanks Kevin Hwang for helping me fix the min/max/mid points 
+  	if (y1 <= y2 && y1 <= y3){
+		minX = x1;
+		minY = y1;
+		minZ = z1;
+		
+		if (y2 <= y3) {  
+			midX = x2;
+			midY = y2;
+			midZ = z2;
+			maxX = x3;
+			maxY = y3;
+			maxZ = z3;
+		}
+		else {
+			midX = x3;
+			midY = y3;
+			midZ = z3;
+			maxX = x2;
+			maxY = y2;
+			maxZ = z2;
+		}
+	}
+	else if (y2 <= y1 && y2 <= y3) {
+		minX = x2;
+		minY = y2;
+		minZ = z2;
+		
+		if (y1 <= y3){
+			midX = x1;
+			midY = y1;
+			midZ = z1;
+		        maxX = x3;
+			maxY = y3;
+			maxZ = z3;
+		}
+		else {
+			midX = x3;
+			midY = y3;
+			midZ = z3;
+		        maxX = x1;
+			maxY = y1;
+			maxZ = z1;
+		}
+	}
+	else { 
+		minX = x3;
+		minY = y3;
+		minZ = z3;
+		
+		if (y1 <= y2) {
+			midX = x1;
+			midY = y1;
+			midZ = z1;
+			maxX = x2;
+			maxY = y2;
+			maxZ = z2;
+		}
+		else {
+			midX = x2;
+			midY = y2;
+			midZ = z2;
+			maxX = x1;
+			maxY = y1;
+			maxZ = z1;
+		}
+	}
+  printf("minX:%f\nmidX:%f\nmaxX:%f\nminY:%f\nmidY:%f\nmaxY:%f\nminZ:%f\nmidZ:%f\nmaxZ:%f\n",minX,midX,maxX,minY,midY,maxY,minZ,midZ,maxZ);
+  if(maxY == minY){
+    dx = 0.0;
+    dz = 0.0;
+  }
+  else{
+    dx = (maxX - minX)/(maxY - minY); 
+    dz = (maxZ - minZ)/(maxY - minY);
+  }
+  if(midY == minY){
+    dx1 = 0.0;
+    dz1 = 0.0;
+  }
+  else{
+    dx1 = (midX - minX)/(midY - minY);
+    dz1 = (midZ - minZ)/(midY - minY);
+  }
+  xA = minX;
+  zA = minZ;
+  yA = minY;
+  xB = minX;
+  zB = minZ;
+    while(yA <=midY){
+    draw_line(xA,yA,zA,xB,yA,zB,s,zb,c);
+    xA += dx;
+    xB += dx1;
+    zA += dz;
+    zB += dz1;
+    yA += 1.0;
+    printf("yA:%f\n",yA);
+    }
+  
+  xB = midX;
+  zB = midZ;
+  if(maxY == midY){
+    dx1 = 0.0;
+    dz1 = 0.0;
+  }
+  else{
+    dx1 = (maxX - midX)/(maxY - midY);
+    dz1 = (maxZ - midZ)/(maxY - midY);
+  }
+   while(yA<maxY){
+    draw_line(xA,yA,zA,xB,yA,zB,s,zb,c);
+    xA += dx;
+    xB += dx1;
+    zA += dz;
+    zB += dz1;
+    yA += 1.0;
+     printf("yA:%f\n",yA);
+     }
 }
 
 
 
+
 /*======== void add_polygon() ==========
-Inputs:   struct matrix *surfaces
+  Inputs:   struct matrix *surfaces
          double x0
          double y0
          double z0
@@ -114,15 +237,21 @@ void draw_polygons( struct matrix *polygons, screen s, zbuffer zb, color c ) {
   for (point=0; point < polygons->lastcol-2; point+=3) {
 
     normal = calculate_normal(polygons, point);
-    
+    //printf("point:%d\n",point);
     if ( normal[2] > 0 ) {
       
       //printf("polygon %d\n", point);
-      /* scanline_convert( polygons, point, s, zb ); */
+      // scanline_convert( polygons, point, s, zb );
       /* c.red = 0; */
       /* c.green = 255; */
       /* c.blue = 0; */
-      draw_line( polygons->m[0][point],
+      c.red = rand() % 256;
+      c.green = rand()%256;
+      c.blue = rand()%256;
+      printf("points:%d\n",point);
+      scanline_convert(polygons,point,s,zb,c);
+      //printf("
+      /*   draw_line( polygons->m[0][point],
       		 polygons->m[1][point],
       		 polygons->m[2][point],
       		 polygons->m[0][point+1],
@@ -143,6 +272,7 @@ void draw_polygons( struct matrix *polygons, screen s, zbuffer zb, color c ) {
       		 polygons->m[1][point+2],
       		 polygons->m[2][point+2],
       		 s, zb, c);
+      */
        }
   }
 }
